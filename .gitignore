@@ -1,0 +1,10 @@
+.env
+
+/db/admin/*
+!/db/admin/.gitkeep
+
+/db/caching/*
+!/db/caching/.gitkeep
+
+/db/database/*
+!/db/database/.gitkeep

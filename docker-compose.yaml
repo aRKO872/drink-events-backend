@@ -1,0 +1,52 @@
+services:
+  db:
+    container_name: postgres
+    image: postgres
+    env_file:
+      - ./.env
+    volumes:
+      - ./db/database:/var/lib/postgresql/data
+    ports:
+      - "5332:5432"
+    restart: unless-stopped
+
+  pgadmin:
+    restart: always
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    ports:
+      - "4000:80"
+    volumes:
+      - ./db/admin:/var/lib/pgadmin
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    env_file:
+      - ./.env
+    volumes:
+      - ./db/caching:/var/lib/redis
+    ports:
+      - "6379:6379"
+  
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app
+    env_file:
+      - ./.env
+    container_name: drink_events_backend
+    ports:
+      - "3050:3050"
+    depends_on:
+      - db
+      - redis
