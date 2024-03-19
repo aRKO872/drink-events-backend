@@ -3,14 +3,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_types AS ENUM ('user', 'admin', 'pub_representative');
 
 CREATE TABLE files (
-  id UUID PRIMARY KEY NOT NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   file_name VARCHAR NOT NULL,
   etag VARCHAR NOT NULL,
   secure_url VARCHAR NOT NULL
 );
 
 CREATE TABLE users (
-  id UUID PRIMARY KEY NOT NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR NOT NULL,
   user_type user_types NOT NULL,
   email VARCHAR UNIQUE NOT NULL,
@@ -27,20 +27,20 @@ CREATE TABLE users (
 );
 
 CREATE TABLE blocked_users (
-  id UUID PRIMARY KEY NOT NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id),
   blocked_user_id UUID NOT NULL REFERENCES users(id),
   time_of_blocking TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE drinks (
-  id INT PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   drink_name VARCHAR NOT NULL,
   drink_pic UUID REFERENCES files(id)
 );
 
 CREATE TABLE user_drinks_mappings (
-  id UUID PRIMARY KEY NOT NULL,
-  drink_id INT NOT NULL REFERENCES drinks(id),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  drink_id UUID NOT NULL REFERENCES drinks(id),
   user_id UUID NOT NULL REFERENCES users(id)
 );
