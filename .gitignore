@@ -9,4 +9,4 @@
 /db/database/*
 !/db/database/.gitkeep
 
-/postgres/db
+/containers/

@@ -3,18 +3,12 @@ services:
     container_name: postgres
     image: postgres
     env_file:
-      - ./postgres/.env
+      - ./.env
     volumes:
-      - ./postgres/db:/var/lib/postgresql/data
+      - ./containers/db:/var/lib/postgresql/data
     ports:
       - "5332:5432"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "postgres", "ping", "-h", "postgres", "-u", "${POSTGRES_USER}", "-p${POSTGRES_PASSWORD}"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 50
-      start_period: 30s
 
   pgadmin:
     restart: always
@@ -24,6 +18,8 @@ services:
       - ./.env
     depends_on:
       - db
+    volumes: 
+      - ./containers/pgadmin:/var/lib/pgadmin/
     ports:
       - "4000:80"
 
@@ -33,7 +29,7 @@ services:
     env_file:
       - ./.env
     volumes:
-      - ./redis-data:/var/lib/redis
+      - ./containers/redis-data:/var/lib/redis
     ports:
       - "6379:6379"
 
@@ -66,6 +62,3 @@ services:
       - redis
       - pgadmin
     restart: unless-stopped
-
-volumes:
-  redis-data:
