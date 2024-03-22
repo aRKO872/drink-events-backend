@@ -14,7 +14,7 @@ var (
 
 func InitDB(connString string) error {
   if db != nil {
-      return nil // Database already initialized
+      return fmt.Errorf("database already initialized") // Database already initialized
   }
 
   sqlDB, err := sql.Open("pgx", connString)
@@ -33,9 +33,11 @@ func InitDB(connString string) error {
   return nil
 }
 
-func GetDB() (*gorm.DB, error) {
+func GetDB(connString string) (*gorm.DB, error) {
   if db == nil {
-      return nil, fmt.Errorf("database not initialized")
+    if err := InitDB(connString); err != nil {
+      return nil, fmt.Errorf("error initializing db")
+    }
   }
   return db, nil
 }
