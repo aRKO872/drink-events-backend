@@ -1,4 +1,4 @@
-package pkg_component
+package pkg_component_otp
 
 import (
 	"context"
@@ -58,7 +58,7 @@ func (roo *RedisOTPOperator) Get(
 	}
 
 	if otpExists != 1 {
-		return false, nil, nil
+		return false, nil, fmt.Errorf("otp does not exist")
 	}
 
 	// user exists and fetching and putting value in User
@@ -112,6 +112,24 @@ func (roo *RedisOTPOperator) Set(
 
 	if setErr != nil {
 		return setErr
+	}
+
+	return nil
+}
+
+func (ruo *RedisOTPOperator) Remove(
+	emailOrPhone string,
+	event string,
+) error {
+	rdbClient := ruo.RDB
+
+	key := fmt.Sprintf("%s_%s", emailOrPhone, event)
+
+	if err := rdbClient.Del(
+		context.Background(), 
+		key,
+	).Err(); err != nil {
+		return fmt.Errorf("failed to remove otp")
 	}
 
 	return nil

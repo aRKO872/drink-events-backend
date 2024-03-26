@@ -17,10 +17,15 @@ type ProjectConfig struct {
 	SMTP_PASSWORD string
 	SMTP_PORT int
 	SMTP_USER string
+	ACCESS_TOKEN_EXPIRY int
+	REFRESH_TOKEN_EXPIRY int
+	JWT_SECRET_KEY string
 }
 
 func GetProjectConfig () *ProjectConfig {
 	smtpPort, _:= strconv.Atoi(os.Getenv("SMTP_PORT"))
+	accessTokenExpiry, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY"))
+	refreshTokenExpiry, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRY"))
 
 	return &ProjectConfig{
 		DATABASE_URL: os.Getenv("DATABASE_URL"),
@@ -34,5 +39,8 @@ func GetProjectConfig () *ProjectConfig {
 		SMTP_PASSWORD: os.Getenv("SMTP_PASSWORD"),
 		SMTP_PORT: smtpPort,
 		SMTP_USER: os.Getenv("SMTP_USER"),
+		ACCESS_TOKEN_EXPIRY:  accessTokenExpiry,
+		REFRESH_TOKEN_EXPIRY: refreshTokenExpiry,
+		JWT_SECRET_KEY: os.Getenv("JWT_SECRET_KEY"),
 	}
 }

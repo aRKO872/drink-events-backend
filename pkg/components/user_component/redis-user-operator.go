@@ -1,4 +1,4 @@
-package pkg_component
+package pkg_component_user
 
 import (
 	"context"
@@ -23,20 +23,20 @@ func GetRedisUserOperator() (*RedisUserOperator, error) {
 	}, nil
 }
 
-func (ruo *RedisUserOperator) Get(key string) (bool, *Users, error) {
+func (ruo *RedisUserOperator) Get(id string) (bool, *Users, error) {
 	rdbClient := ruo.RDB
 
 	var user *Users
 
 	// Checking if exists user exists 
-	userExists, existErr := rdbClient.Exists(context.Background(), key).Result()
+	userExists, existErr := rdbClient.Exists(context.Background(), fmt.Sprintf("%s_user_info", id)).Result()
 
 	if userExists != 1 || existErr != nil {
 		return false, nil, fmt.Errorf("error checking existence of user: %s", existErr.Error())
 	}
 
 	// user exists and fetching and putting value in User
-	fetchErr := rdbClient.Get(context.Background(), key).Scan(&user)
+	fetchErr := rdbClient.Get(context.Background(), fmt.Sprintf("%s_user_info", id)).Scan(&user)
 
 	if fetchErr != nil {
 		return false, nil, fmt.Errorf("error fetching user data: %s", fetchErr.Error())
@@ -45,10 +45,10 @@ func (ruo *RedisUserOperator) Get(key string) (bool, *Users, error) {
 	return true, user, nil
 }
 
-func (ruo *RedisUserOperator) Set(key string, user *Users) error {
+func (ruo *RedisUserOperator) Set(id string, user *Users) error {
 	rdbClient := ruo.RDB
 
-	setErr := rdbClient.Set(context.Background(), fmt.Sprintf("%s_user_info", key), user, 0).Err()
+	setErr := rdbClient.Set(context.Background(), fmt.Sprintf("%s_user_info", id), user, 0).Err()
 
 	if setErr != nil {
 		return setErr
@@ -56,12 +56,3 @@ func (ruo *RedisUserOperator) Set(key string, user *Users) error {
 
 	return nil
 }
-
-// CREATE TABLE otps (
-//   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-//   number INT NOT NULL CHECK (number >= 100000 AND number <= 999999), 
-//   event otp_event_types NOT NULL,
-//   expiry TIMESTAMP NOT NULL,
-//   created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-//   updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-// );

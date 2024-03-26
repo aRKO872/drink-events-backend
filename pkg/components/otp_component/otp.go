@@ -1,4 +1,4 @@
-package pkg_component
+package pkg_component_otp
 
 import "encoding/json"
 
