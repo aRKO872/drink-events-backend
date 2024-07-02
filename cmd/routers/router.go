@@ -12,6 +12,7 @@ func InitRouter() *gin.Engine {
 	// Middlewares
 	r.Use(middlewares.LoadEnv)
 	r.Use(middlewares.LoadDatabase)
+	r.Use(middlewares.EnableCors)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -25,6 +26,10 @@ func InitRouter() *gin.Engine {
 	r.POST("/auth/resend-otp-verify", auth_controller.ResendEmailOTP)
 	r.POST("/auth/signup", auth_controller.SignUp)
 	r.POST("/auth/login", auth_controller.LogIn)
+
+	// Websocket Endpoint
+
+	//r.POST("/ws", socketManager.ServeWS)
 
 	return r
 }

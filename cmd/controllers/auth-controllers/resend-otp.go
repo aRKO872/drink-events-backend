@@ -3,32 +3,32 @@ package auth_controller
 import (
 	"fmt"
 	"net/http"
-
-	pkg_component_user "github.com/drink-events-backend/pkg/components/user_component"
-	endpoint_inputs "github.com/drink-events-backend/pkg/endpoint-inputs"
+	"github.com/drink-events-backend/pkg/business_logic/service"
+	"github.com/drink-events-backend/models"
 	"github.com/gin-gonic/gin"
 )
 
 func ResendEmailOTP(c *gin.Context) {
-	var input *endpoint_inputs.ResendOTP
+	var input *models.ResendOTP
+	ctx := c.Request.Context()
 
 	if bindingErr := c.Bind(&input); bindingErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: bindingErr.Error(),
 		})
 		return
 	}
 
-	var user = &pkg_component_user.Users{
+	var user = &models.Users{
 		Email: input.Email,
 		Phone: input.Phone,
 	}
 
-	resendConfirmation, resendOTPError := user.ResendOTPForVerification(input)
+	resendConfirmation, resendOTPError := service.ResendOTPForVerification(ctx, user, input)
 
 	if !resendConfirmation && resendOTPError != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: resendOTPError.Error(),
 		})

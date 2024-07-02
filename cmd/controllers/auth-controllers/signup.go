@@ -3,23 +3,24 @@ package auth_controller
 import (
 	"net/http"
 
-	pkg_component_user "github.com/drink-events-backend/pkg/components/user_component"
-	endpoint_inputs "github.com/drink-events-backend/pkg/endpoint-inputs"
+	"github.com/drink-events-backend/models"
+	"github.com/drink-events-backend/pkg/business_logic/service"
 	"github.com/gin-gonic/gin"
 )
 
 func SignUp(c *gin.Context) {
-	var input *endpoint_inputs.SignUpInput
+	var input *models.SignUpInput
+	ctx := c.Request.Context()
 
 	if bindingErr := c.Bind(&input); bindingErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: bindingErr.Error(),
 		})
 		return
 	}
 
-	var user = &pkg_component_user.Users{
+	var user = &models.Users{
 		Email: input.Email,
 		Name: input.Name,
 		Phone: input.Phone,
@@ -27,10 +28,10 @@ func SignUp(c *gin.Context) {
 		Bio: input.Bio,
 	}
 
-	signUpStatus, signUpObj := user.SignUp()
+	signUpStatus, signUpObj := service.SignUp(ctx, user)
 
 	if !signUpStatus {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: signUpObj.Status,
 			ErrorMsg: signUpObj.ErrorMsg,
 		})

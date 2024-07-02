@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/smtp"
 	"regexp"
-
 	pkg_config "github.com/drink-events-backend/pkg/config"
 )
 
