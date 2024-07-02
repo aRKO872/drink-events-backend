@@ -1,43 +1,58 @@
 package internal_database
 
 import (
-    "database/sql"
-    "fmt"
+	"database/sql"
+	"fmt"
+	"sync"
 
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
+
+type DatabaseOperator struct {
+	*sync.RWMutex
+	DB *gorm.DB
+}
 
 var (
-  db *gorm.DB
+  dbOperator *DatabaseOperator
 )
 
-func InitDB(connString string) error {
-  if db != nil {
-      return fmt.Errorf("database already initialized") // Database already initialized
+func InitDB(connString string) (*gorm.DB, error) {
+  if dbOperator != nil {
+      return nil, fmt.Errorf("database already initialized") // Database already initialized
   }
 
   sqlDB, err := sql.Open("pgx", connString)
   if err != nil {
-      return fmt.Errorf("error opening SQL connection: %w", err)
+      return nil, fmt.Errorf("error opening SQL connection: %w", err)
   }
 
   gormDB, err := gorm.Open(postgres.New(postgres.Config{
       Conn: sqlDB,
   }), &gorm.Config{})
   if err != nil {
-      return fmt.Errorf("error setting up GORM: %w", err)
+      return nil, fmt.Errorf("error setting up GORM: %w", err)
   }
 
-  db = gormDB
-  return nil
+  return gormDB, nil
 }
 
-func GetDB(connString string) (*gorm.DB, error) {
-  if db == nil {
-    if err := InitDB(connString); err != nil {
-      return nil, fmt.Errorf("error initializing db")
-    }
-  }
-  return db, nil
+func GetDB(connString string) (*DatabaseOperator, error) {
+  if dbOperator != nil {
+		return dbOperator, nil;
+	}
+
+	// Initialize Redis DB
+	dbOp, initializeErr := InitDB(connString)
+
+	if initializeErr != nil {
+		return nil, initializeErr
+	}
+
+	dbOperator = &DatabaseOperator{
+		new(sync.RWMutex),
+		dbOp, 
+	}
+	return dbOperator, nil;
 }

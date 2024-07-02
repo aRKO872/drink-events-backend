@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
-	pkg_component "github.com/drink-events-backend/pkg/components/user_component"
-	endpoint_inputs "github.com/drink-events-backend/pkg/endpoint-inputs"
+	"github.com/drink-events-backend/models"
+	"github.com/drink-events-backend/pkg/business_logic/service"
 	"github.com/gin-gonic/gin"
 )
 
 func VerifyOTP(c *gin.Context) {
-	var input *endpoint_inputs.VerifyOTP
+	var input *models.VerifyOTP
+	ctx := c.Request.Context()
 	bindDataErr := c.Bind(&input);
 
 	if bindDataErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: bindDataErr.Error(),
 		})
@@ -22,15 +23,15 @@ func VerifyOTP(c *gin.Context) {
 	}
 
 	// Business Logic
-	user := &pkg_component.Users{
+	user := &models.Users{
 		Email: input.Email,
 		Phone: input.Phone,
 	}
 
-	isSuccessful, otpCheckErr := user.VerifyOTP(input.Otp, input.Event);
+	isSuccessful, otpCheckErr := service.VerifyOTP(ctx, input.Otp, input.Event, user);
 
 	if !isSuccessful && otpCheckErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: otpCheckErr.Error(),
 		})

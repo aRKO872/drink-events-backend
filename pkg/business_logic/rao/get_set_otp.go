@@ -1,43 +1,27 @@
-package pkg_component_otp
+package rao
 
 import (
 	"context"
-	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/drink-events-backend/models"
 	pkg_helpers "github.com/drink-events-backend/pkg/helper"
-	redis_operations "github.com/drink-events-backend/pkg/redis-operations"
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisOTPOperator struct {
-	redis_operations.RedisOperator
-}
-
-func GetRedisOTPOperator() (*RedisOTPOperator, error) {
-	ro, initErr := redis_operations.CreateOrGetRedisOperator()
-
-	if initErr != nil {
-		return nil, initErr
-	}
-
-	return &RedisOTPOperator{
-		RedisOperator: *ro,
-	}, nil
-}
-
-func (roo *RedisOTPOperator) Get(
+func (rao *RedisAccessOperator) GetOTP(
+	ctx context.Context,
 	otpType string,
 	emailOrPhone string,
 	eventType string,
-) (bool, *OTP, error) {
+) (bool, *models.OTP, error) {
 
-	rdbClient := roo.RDB
+	rdbClient := rao.RDB
 
-	var otp *OTP
+	var otp *models.OTP
 
 	if otpType == "phone" && !pkg_helpers.IsValidPhoneNumber(emailOrPhone) {
 		return false, nil, fmt.Errorf("not a valid phone number")
@@ -51,7 +35,7 @@ func (roo *RedisOTPOperator) Get(
 	key := fmt.Sprintf("%s_%s", emailOrPhone, eventType)
 
 	// Checking if exists user exists 
-	otpExists, existErr := rdbClient.Exists(context.Background(), key).Result()
+	otpExists, existErr := rdbClient.Exists(ctx, key).Result()
 
 	if existErr != nil {
 		return false, nil, fmt.Errorf("error checking existence of OTP: %s", existErr.Error())
@@ -62,7 +46,7 @@ func (roo *RedisOTPOperator) Get(
 	}
 
 	// user exists and fetching and putting value in User
-	val, err := rdbClient.Get(context.Background(), key).Result()
+	val, err := rdbClient.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return false, nil, nil // Key does not exist
@@ -78,14 +62,14 @@ func (roo *RedisOTPOperator) Get(
 	return true, otp, nil
 }
 
-func (roo *RedisOTPOperator) Set(
+func (rao *RedisAccessOperator) SetOTP(
+	ctx context.Context,
 	otpNumber int,
 	otpType string,
 	emailOrPhone string,
 	eventType string,
 	noOfMinutes int,
 ) error {
-
 	if otpType == "phone" && !pkg_helpers.IsValidPhoneNumber(emailOrPhone) {
 		return fmt.Errorf("not a valid phone number")
 	} else if otpType == "email" && !pkg_helpers.IsValidEmail(emailOrPhone) {
@@ -94,19 +78,22 @@ func (roo *RedisOTPOperator) Set(
 		return fmt.Errorf("invalid otp type provided")
 	}
 
-	rdbClient := roo.RDB
+	rdbClient := rao.RDB
 
 	// Setting No of minutes as expiration time in Redis
+	rao.Lock()
+	defer rao.Unlock()
+	otpObj := models.OTP{
+		OtpNumber: otpNumber,
+		Event: eventType,
+		Type: otpType,
+		Email: emailOrPhone,
+		Phone: emailOrPhone,
+	}
 	setErr := rdbClient.Set(
-		context.Background(), 
+		ctx, 
 		fmt.Sprintf("%s_%s", emailOrPhone, eventType), 
-		encoding.BinaryMarshaler(OTP{
-			OtpNumber: otpNumber,
-			Event: eventType,
-			Type: otpType,
-			Email: emailOrPhone,
-			Phone: emailOrPhone,
-		}),
+		otpObj,
 		(time.Duration(noOfMinutes) * time.Minute),
 	).Err()
 
@@ -117,16 +104,19 @@ func (roo *RedisOTPOperator) Set(
 	return nil
 }
 
-func (ruo *RedisOTPOperator) Remove(
+func (rao *RedisAccessOperator) RemoveOTP(
+	ctx context.Context,
 	emailOrPhone string,
 	event string,
 ) error {
-	rdbClient := ruo.RDB
+	rdbClient := rao.RDB
 
 	key := fmt.Sprintf("%s_%s", emailOrPhone, event)
 
+	rao.Lock()
+	defer rao.Unlock()
 	if err := rdbClient.Del(
-		context.Background(), 
+		ctx, 
 		key,
 	).Err(); err != nil {
 		return fmt.Errorf("failed to remove otp")

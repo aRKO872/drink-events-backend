@@ -3,31 +3,17 @@ package pkg_config
 import (
 	"os"
 	"strconv"
+
+	"github.com/drink-events-backend/models"
 )
 
-type ProjectConfig struct {
-	DATABASE_URL string
-	PGADMIN_DEFAULT_EMAIL string
-	PGADMIN_DEFAULT_PASSWORD string
-	REDIS_PASSWORD string
-	POSTGRES_USER string
-	POSTGRES_PASSWORD string
-	POSTGRES_DB string
-	SMTP_HOST string
-	SMTP_PASSWORD string
-	SMTP_PORT int
-	SMTP_USER string
-	ACCESS_TOKEN_EXPIRY int
-	REFRESH_TOKEN_EXPIRY int
-	JWT_SECRET_KEY string
-}
-
-func GetProjectConfig () *ProjectConfig {
+func GetProjectConfig () *models.ProjectConfig {
 	smtpPort, _:= strconv.Atoi(os.Getenv("SMTP_PORT"))
 	accessTokenExpiry, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY"))
 	refreshTokenExpiry, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRY"))
+	fetchNearbyPeriod, _ := strconv.Atoi(os.Getenv("FETCH_NEARBY_ACTIVE_PERIOD"))
 
-	return &ProjectConfig{
+	return &models.ProjectConfig{
 		DATABASE_URL: os.Getenv("DATABASE_URL"),
 		PGADMIN_DEFAULT_EMAIL: os.Getenv("PGADMIN_DEFAULT_EMAIL"),
 		PGADMIN_DEFAULT_PASSWORD: os.Getenv("PGADMIN_DEFAULT_PASSWORD"),
@@ -42,5 +28,7 @@ func GetProjectConfig () *ProjectConfig {
 		ACCESS_TOKEN_EXPIRY:  accessTokenExpiry,
 		REFRESH_TOKEN_EXPIRY: refreshTokenExpiry,
 		JWT_SECRET_KEY: os.Getenv("JWT_SECRET_KEY"),
+		FE_SOURCE: os.Getenv("FE_SOURCE"),
+		FETCH_NEARBY_ACTIVE_PERIOD: fetchNearbyPeriod,
 	}
 }

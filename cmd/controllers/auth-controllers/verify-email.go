@@ -4,31 +4,33 @@ import (
 	"fmt"
 	"net/http"
 
-	pkg_component "github.com/drink-events-backend/pkg/components/user_component"
-	endpoint_inputs "github.com/drink-events-backend/pkg/endpoint-inputs"
+	"github.com/drink-events-backend/models"
+	"github.com/drink-events-backend/pkg/business_logic/service"
 	"github.com/gin-gonic/gin"
 )
 
 func VerifyEmail(c *gin.Context) {
-	var input *endpoint_inputs.VerifyUserEmailInput
+	var input *models.VerifyUserEmailInput
+
+	ctx := c.Request.Context()
 	bindDataErr := c.Bind(&input);
 
 	if bindDataErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: bindDataErr.Error(),
 		})
 		return
 	}
 
-	user := &pkg_component.Users{
+	user := &models.Users{
 		Email: input.Email,
 	}
 
-	isSuccessful, emailSendErr := user.VerifyEmail();
+	isSuccessful, emailSendErr := service.VerifyEmail(ctx, user);
 
 	if !isSuccessful && emailSendErr != nil {
-		c.JSON(http.StatusBadRequest, &endpoint_inputs.CommonErrorOutput{
+		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{
 			Status: false,
 			ErrorMsg: emailSendErr.Error(),
 		})
