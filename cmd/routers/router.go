@@ -2,6 +2,7 @@ package routers
 
 import (
 	auth_controller "github.com/drink-events-backend/cmd/controllers/auth-controllers"
+	geo_controllers "github.com/drink-events-backend/cmd/controllers/geo-controllers"
 	middlewares "github.com/drink-events-backend/cmd/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +14,8 @@ func InitRouter() *gin.Engine {
 	r.Use(middlewares.LoadEnv)
 	r.Use(middlewares.LoadDatabase)
 	r.Use(middlewares.EnableCors)
+
+	r.Use(middlewares.AllowRoutesMiddleware(middlewares.VerifyToken(), "/geo"))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -27,9 +30,7 @@ func InitRouter() *gin.Engine {
 	r.POST("/auth/signup", auth_controller.SignUp)
 	r.POST("/auth/login", auth_controller.LogIn)
 
-	// Websocket Endpoint
-
-	//r.POST("/ws", socketManager.ServeWS)
-
+	// GEOLocation Endpoint
+	r.POST("/geo/get-nearby-users", geo_controllers.GetNearbyUsers)
 	return r
 }

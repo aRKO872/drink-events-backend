@@ -21,12 +21,7 @@ func LogIn(c *gin.Context) {
 		return
 	}
 
-	user := &models.Users{
-		Email: input.Email,
-		Phone: input.Phone,
-	}
-
-	logInStatus, logInObj := service.LogIn(ctx, input, user)
+	logInStatus, logInObj := service.LogIn(ctx, input)
 
 	if !logInStatus {
 		c.JSON(http.StatusBadRequest, &models.CommonErrorOutput{

@@ -2,8 +2,13 @@ package pkg_helpers
 
 import (
 	"fmt"
+	"net/http"
 	"net/smtp"
 	"regexp"
+	"strconv"
+
+	"github.com/drink-events-backend/literals"
+	"github.com/drink-events-backend/models"
 	pkg_config "github.com/drink-events-backend/pkg/config"
 )
 
@@ -40,4 +45,27 @@ func SendEmail(to []string, mailBody []byte) error {
 	}
 
 	return nil
+}
+
+func GetUserDetailsFromReqHeader(
+	req *http.Request,
+) (*models.TokenizedUserDetails, error) {
+	userId := req.Header.Get(literals.HEADER_USER_ID)
+	userType := req.Header.Get(literals.HEADER_USER_TYPE)
+	radius := req.Header.Get(literals.HEADER_USER_SEARCH_DISTANCE)
+
+	if userId == "" || userType == "" || radius == "" {
+		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to resolve user dtls from header")
+	}
+
+	searchRadius, convertToIntRadius := strconv.Atoi(radius)
+	if convertToIntRadius != nil {
+		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to convert search radius value")
+	}
+
+	return &models.TokenizedUserDetails{
+		UserType: userType,
+		UserId: userId,
+		SearchRadius: searchRadius,
+	}, nil
 }

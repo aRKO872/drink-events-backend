@@ -2,6 +2,7 @@ package pkg_helpers
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/drink-events-backend/models"
@@ -12,9 +13,7 @@ func GenerateToken(key string, expiration time.Duration, user *models.Users) (st
 	claims := &models.JWTClaims{
 		UserId:   user.Id,
 		UserType: user.UserType,
-		Name:     user.Name,
-		Phone:    user.Phone,
-		Email:    user.Email,
+		SearchRadius: user.SearchRadius,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiration * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -38,6 +37,7 @@ func ParseToken(tokenString string, key string) (*models.JWTClaims, error) {
 	})
 
 	if err != nil {
+		fmt.Println("Error is : ", err)
 		return nil, errors.New("error occurred while parsing token")
 	}
 

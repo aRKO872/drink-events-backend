@@ -48,18 +48,15 @@ type SignUpLoginOutput struct {
 	RefreshToken string `json:"refresh-token"`
 }
 
-type ServeWebsockets struct {
-	Status     bool   `json:"status"`
-	ErrorMsg   string `json:"error-msg,omitempty"`
-	SuccessMsg string `json:"success-msg,omitempty"`
+type GetNearbyUsersOutput struct {
+	Status      bool    `json:"status"`
+	ErrorMsg    string  `json:"error-msg"`
+	NearbyUsers []Users `json:"users"`
 }
-
 type JWTClaims struct {
-	UserType string `json:"user_type"`
-	UserId   string `json:"user_id"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Name     string `json:"name"`
+	UserType     string `json:"user_type"`
+	UserId       string `json:"user_id"`
+	SearchRadius int    `json:"search_radius"`
 	jwt.RegisteredClaims
 }
 
@@ -84,6 +81,10 @@ func (u Users) MarshalBinary() ([]byte, error) {
 	return json.Marshal(u)
 }
 
+func (u *Users) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, &u)
+}
+
 type OTP struct {
 	OtpNumber int    `json:"number"`
 	Event     string `json:"event"`
@@ -94,6 +95,10 @@ type OTP struct {
 
 func (otp OTP) MarshalBinary() ([]byte, error) {
 	return json.Marshal(otp)
+}
+
+func (otp *OTP) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, &otp)
 }
 
 type ProjectConfig struct {
@@ -115,18 +120,19 @@ type ProjectConfig struct {
 	FETCH_NEARBY_ACTIVE_PERIOD int
 }
 
-type SocketEventMain struct {
-	EventType   string              `json:"event_type"`
-	LocationEvt LocationSetSocketEvent `json:"location_set_event"`
-	MessageEvt  MessageSocketEvent  `json:"message_event"`
+type LocationSetEvent struct {
+	Latitude  float64 `json:"latitude" binding:"required,numeric"`
+	Longitude float64 `json:"longitude" binding:"required,numeric"`
 }
 
-type LocationSetSocketEvent struct {
+type UserWithLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
+	UserId    string  `json:"user_id"`
 }
 
-type MessageSocketEvent struct {
-	GroupID string `json:"group_id"`
-	Message string `json:"msg"`
+type TokenizedUserDetails struct {
+	UserType     string `json:"user_type"`
+	UserId       string `json:"user_id"`
+	SearchRadius int    `json:"search_radius"`
 }
