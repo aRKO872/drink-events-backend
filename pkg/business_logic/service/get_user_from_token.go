@@ -2,16 +2,19 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/drink-events-backend/models"
 	pkg_config "github.com/drink-events-backend/pkg/config"
 	pkg_helpers "github.com/drink-events-backend/pkg/helper"
-	"github.com/gin-gonic/gin"
 )
 
-func FetchUserFromToken(c *gin.Context) (*models.Users, error) {
-	auth := c.Request.Header.Get("Authorization")
+func FetchUserFromToken(
+	r *http.Request,
+	sendOnlyClaims bool,
+) (*models.Users, error) {
+	auth := r.Header.Get("Authorization")
 	if auth == "" {
 		return nil, fmt.Errorf("missing authorization header")
 	}
@@ -28,8 +31,16 @@ func FetchUserFromToken(c *gin.Context) (*models.Users, error) {
 		return nil, userFetchedFromTokenErr
 	}
 
+	if sendOnlyClaims {
+		return &models.Users{
+			UserType: userClaims.UserType,
+			Id: userClaims.UserId,
+			SearchRadius: userClaims.SearchRadius,
+		}, nil
+	}
+
 	fetchedUser, fetchUserFromUserIDError := GetUser(
-		c.Request.Context(), 
+		r.Context(), 
 		userClaims.UserId,
 	)
 

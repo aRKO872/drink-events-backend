@@ -15,7 +15,6 @@ import (
 func LogIn(
 	ctx context.Context,
 	input *models.LogInInput,
-	u *models.Users,
 ) (status bool, output *models.SignUpLoginOutput) {
 	// Check if user exists with Email and phone number provided in DB
 	// If Not exists throw error asking to Sign Up
@@ -57,6 +56,7 @@ func LogIn(
 				ErrorMsg: fetchErr.Error(),
 			}
 		}
+		fmt.Println("helloo oo ", user)
 	} else {
 		return false, &models.SignUpLoginOutput{
 			Status:   false,
@@ -76,16 +76,18 @@ func LogIn(
 
 	// Get Access and Refresh token
 	// Generate Access and Refresh Tokens
+
+	fmt.Printf("%#v\n", user)
 	access_token, accessTokenErr := pkg_helpers.GenerateToken(
 		pkg_config.GetProjectConfig().JWT_SECRET_KEY,
 		time.Duration(pkg_config.GetProjectConfig().ACCESS_TOKEN_EXPIRY),
-		u,
+		user,
 	)
 
 	refresh_token, refreshTokenErr := pkg_helpers.GenerateToken(
 		pkg_config.GetProjectConfig().JWT_SECRET_KEY,
 		time.Duration(pkg_config.GetProjectConfig().REFRESH_TOKEN_EXPIRY),
-		u,
+		user,
 	)
 
 	if accessTokenErr != nil {

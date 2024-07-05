@@ -1,7 +1,11 @@
 package literals
 
-// Redis Keys
 const (
+	// Header Keys
+	HEADER_USER_ID = "user_id"
+	HEADER_USER_TYPE = "user_type"
+	HEADER_USER_SEARCH_DISTANCE = "user_search_distance"
+
 	// Redis Keys
 	USER_LOCATION_KEY = "user_location"
 
@@ -11,4 +15,10 @@ const (
 
 	// REDIS TABLE KEYS 
 	USER_INFO_REDIS_KEY = "%s_user_info"
+
+	// Context literals
+	CTX_USER_ID = "USER_ID"
+
+	//DATE Format
+	DATE_FORMAT = "2006-01-02 15:04:05.999999"
 )

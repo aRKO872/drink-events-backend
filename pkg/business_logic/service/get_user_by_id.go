@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/drink-events-backend/models"
 	"github.com/drink-events-backend/pkg/business_logic/dao"
@@ -22,7 +24,12 @@ func GetUser(
 		return nil, dbReceiveErr
 	}
 
-	fetchStatus, user, _ := redisUserOperator.GetUser(ctx, id)
+	fetchStatus, user, fetchUserErr := redisUserOperator.GetUser(ctx, id)
+
+	if fetchUserErr != nil {
+		fmt.Println(fetchUserErr)
+		return nil, errors.New("error fetching user dtls from redis")
+	}
 
 	if fetchStatus {
 		// Available in cache
