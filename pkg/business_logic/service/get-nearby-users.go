@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/drink-events-backend/models"
@@ -77,7 +76,6 @@ func GetPeopleNearby(
 	for _, geoUserLoc := range nearbyUsersRawArr {
 		g2.Go(func() error {
 			fetchedUser, fetchUserErr := GetUser(ctx, geoUserLoc.Name)
-			fmt.Println("Got hit")
 			if fetchUserErr != nil {
 				return fetchUserErr
 			}

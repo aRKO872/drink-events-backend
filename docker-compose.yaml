@@ -47,6 +47,15 @@ services:
     depends_on:
       - db
       - redis
+  
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
 
   migrate:
     image: migrate/migrate
