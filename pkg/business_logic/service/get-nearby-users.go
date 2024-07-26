@@ -71,18 +71,26 @@ func GetPeopleNearby(
 
 	g2 := new(errgroup.Group)
 
-	userDetailsChan := make(chan models.Users, len(nearbyUsersRawArr))
+	userDetailsChan := make(chan models.Users, 10)
 
-	for _, geoUserLoc := range nearbyUsersRawArr {
-		g2.Go(func() error {
-			fetchedUser, fetchUserErr := GetUser(ctx, geoUserLoc.Name)
-			if fetchUserErr != nil {
-				return fetchUserErr
-			}
+	for ind := 0; ind < len(nearbyUsersRawArr); ind += 10 {
+		end := ind + 10
+		if end > len(nearbyUsersRawArr) {
+			end = len(nearbyUsersRawArr)
+		}
 
-			userDetailsChan <- *fetchedUser
-			return nil
-		})
+		nearbyUserBatch := nearbyUsersRawArr[ind:end]
+		for _, geoUserLoc := range nearbyUserBatch {
+			g2.Go(func() error {
+				fetchedUser, fetchUserErr := GetUser(ctx, geoUserLoc.Name)
+				if fetchUserErr != nil {
+					return fetchUserErr
+				}
+	
+				userDetailsChan <- *fetchedUser
+				return nil
+			})
+		}
 	}
 
 	if g2Err := g2.Wait(); g2Err != nil {

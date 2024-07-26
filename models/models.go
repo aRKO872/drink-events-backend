@@ -75,6 +75,7 @@ type Users struct {
 	EmailLastChanged string  `json:"email_last_changed" db:"email_last_changed"`
 	PhoneLastChanged string  `json:"phone_last_changed" db:"phone_last_changed"`
 	SearchRadius     int     `json:"search_radius" db:"search_radius"`
+	IsActive         bool    `json:"is_active" db:"is_active"`
 }
 
 type UsersSelfTag struct {

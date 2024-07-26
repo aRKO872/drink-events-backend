@@ -2,10 +2,12 @@ package rao
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/drink-events-backend/literals"
 	"github.com/drink-events-backend/models"
+	"github.com/redis/go-redis/v9"
 )
 
 func (rao *RedisAccessOperator) GetUser(
@@ -33,6 +35,17 @@ func (rao *RedisAccessOperator) GetUser(
 	}
 
 	return true, &user, nil
+}
+
+func (ruo *RedisAccessOperator) DeleteUserRecord(
+	ctx context.Context,
+	user *models.Users,
+) (error) {
+	if err := ruo.RDB.Del(ctx, fmt.Sprintf(literals.USER_INFO_REDIS_KEY, user.Id)); err.Err() != nil && !errors.Is(err.Err(), redis.Nil) {
+		return errors.New("failed to delete user from redis")
+	}
+
+	return nil
 }
 
 func (ruo *RedisAccessOperator) SetUser(

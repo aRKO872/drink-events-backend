@@ -72,3 +72,15 @@ func (dao *DatabaseAccessOperator) GetUserFromId(
 
 	return user, nil
 }
+
+func (dao *DatabaseAccessOperator) DeleteExistingUserRecord(
+	user *models.Users,
+) (error) {
+	dao.Lock()
+	defer dao.Unlock()
+
+	if userDeletionErr := dao.DB.Exec("DELETE FROM users Where id = ?;", user.Id).Error; userDeletionErr != nil && !errors.Is(userDeletionErr, gorm.ErrRecordNotFound) {
+		return userDeletionErr
+	}
+	return nil
+}
