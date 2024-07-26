@@ -93,9 +93,12 @@ func GetPeopleNearby(
 	}
 	close(userDetailsChan)
 
-	var outputNearbyUserArr []models.Users
+	var outputNearbyUserArr []models.UsersSelfTag
 	for nearbyUser := range userDetailsChan{
-		outputNearbyUserArr = append(outputNearbyUserArr, nearbyUser)
+		outputNearbyUserArr = append(outputNearbyUserArr, models.UsersSelfTag{
+			Users: nearbyUser,
+			Self: nearbyUser.Id == tokenUser.UserId,
+		})
 	}
 
 	return true, &models.GetNearbyUsersOutput{

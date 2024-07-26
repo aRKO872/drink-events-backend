@@ -11,7 +11,6 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 
 	// Middlewares
-	r.Use(middlewares.LoadEnv)
 	r.Use(middlewares.LoadDatabase)
 	r.Use(middlewares.EnableCors)
 

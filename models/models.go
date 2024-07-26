@@ -8,7 +8,7 @@ import (
 
 type CommonErrorOutput struct {
 	Status   bool   `json:"status"`
-	ErrorMsg string `json:"error-msg"`
+	ErrorMsg string `json:"msg"`
 }
 
 type VerifyUserEmailInput struct {
@@ -43,15 +43,15 @@ type SignUpInput struct {
 
 type SignUpLoginOutput struct {
 	Status       bool   `json:"status"`
-	ErrorMsg     string `json:"error-msg"`
+	ErrorMsg     string `json:"msg"`
 	AccessToken  string `json:"access-token"`
 	RefreshToken string `json:"refresh-token"`
 }
 
 type GetNearbyUsersOutput struct {
-	Status      bool    `json:"status"`
-	ErrorMsg    string  `json:"error-msg"`
-	NearbyUsers []Users `json:"users"`
+	Status      bool           `json:"status"`
+	ErrorMsg    string         `json:"msg"`
+	NearbyUsers []UsersSelfTag `json:"users"`
 }
 type JWTClaims struct {
 	UserType     string `json:"user_type"`
@@ -75,6 +75,11 @@ type Users struct {
 	EmailLastChanged string  `json:"email_last_changed" db:"email_last_changed"`
 	PhoneLastChanged string  `json:"phone_last_changed" db:"phone_last_changed"`
 	SearchRadius     int     `json:"search_radius" db:"search_radius"`
+}
+
+type UsersSelfTag struct {
+	Users
+	Self bool `json:"self"`
 }
 
 func (u Users) MarshalBinary() ([]byte, error) {
