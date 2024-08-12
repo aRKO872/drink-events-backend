@@ -1,7 +1,9 @@
 package pkg_helpers
 
 import (
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/smtp"
 	"regexp"
@@ -68,4 +70,31 @@ func GetUserDetailsFromReqHeader(
 		UserId: userId,
 		SearchRadius: searchRadius,
 	}, nil
+}
+
+func ValidateImageRequest(req *http.Request) (multipart.File, *multipart.FileHeader, error) {
+	err := req.ParseMultipartForm(120 << 10) // 120 kb limit
+	if err != nil {
+		return nil, nil, errors.New("unable to parse form")
+	}
+
+	// Get the file from the form
+	file, fileHandler, err := req.FormFile("picture")
+	if err != nil {
+		return nil, nil, errors.New("error retrieving the file")
+	}
+	defer file.Close()
+
+	// Validate file size (max 100 kb)
+	if fileHandler.Size > 100 << 10 {
+		return nil, nil, errors.New("file too large. Max size is 5MB")
+	}
+
+	// Validate file type (allow only jpeg, jpg and png)
+	fileType := fileHandler.Header.Get("Content-Type")
+	if fileType != "image/jpeg" && fileType != "image/png" && fileType != "image/jpg" {
+		return nil, nil, errors.New("invalid file type. Only JPEG, JPG and PNG are allowed")
+	}
+
+	return file, fileHandler, nil
 }

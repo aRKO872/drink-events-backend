@@ -73,6 +73,35 @@ func (dao *DatabaseAccessOperator) GetUserFromId(
 	return user, nil
 }
 
+func (dao *DatabaseAccessOperator) SetUserProfileImage(
+	userID string,
+	profilePicture string,
+) error {
+	dao.Lock()
+	defer dao.Unlock()
+
+	updateTime := time.Now().Format(literals.DATE_FORMAT)
+	if updateErr := dao.DB.Exec("UPDATE users SET profile_picture = ?, updated_at = ? WHERE id = ?;", profilePicture, updateTime, userID).Error; updateErr != nil {
+		return errors.New("error updating user profile img in DB")
+	}
+
+	return nil
+}
+
+func (dao *DatabaseAccessOperator) RemoveUserProfileImage(
+	userID string,
+) error {
+	dao.Lock()
+	defer dao.Unlock()
+
+	updateTime := time.Now().Format(literals.DATE_FORMAT)
+	if updateErr := dao.DB.Exec("UPDATE users SET profile_picture = null, updated_at = ? WHERE id = ?;", updateTime, userID).Error; updateErr != nil {
+		return errors.New("error updating user profile img in DB")
+	}
+
+	return nil
+}
+
 func (dao *DatabaseAccessOperator) DeleteExistingUserRecord(
 	user *models.Users,
 ) (error) {
@@ -80,7 +109,7 @@ func (dao *DatabaseAccessOperator) DeleteExistingUserRecord(
 	defer dao.Unlock()
 
 	if userDeletionErr := dao.DB.Exec("DELETE FROM users Where id = ?;", user.Id).Error; userDeletionErr != nil && !errors.Is(userDeletionErr, gorm.ErrRecordNotFound) {
-		return userDeletionErr
+		return errors.New("error deleting user")
 	}
 	return nil
 }

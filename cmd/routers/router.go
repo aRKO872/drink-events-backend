@@ -3,6 +3,7 @@ package routers
 import (
 	auth_controller "github.com/drink-events-backend/cmd/controllers/auth-controllers"
 	geo_controllers "github.com/drink-events-backend/cmd/controllers/geo-controllers"
+	user_controllers "github.com/drink-events-backend/cmd/controllers/user-controllers"
 	middlewares "github.com/drink-events-backend/cmd/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,7 @@ func InitRouter() *gin.Engine {
 	r.Use(middlewares.LoadDatabase)
 	r.Use(middlewares.EnableCors)
 
-	r.Use(middlewares.AllowRoutesMiddleware(middlewares.VerifyToken(), "/geo"))
+	r.Use(middlewares.AllowRoutesMiddleware(middlewares.VerifyToken(), "/geo", "/user"))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -31,5 +32,9 @@ func InitRouter() *gin.Engine {
 
 	// GEOLocation Endpoint
 	r.POST("/geo/get-nearby-users", geo_controllers.GetNearbyUsers)
+
+	// User Profile Endpoint
+	r.POST("/user/change-profile-picture", user_controllers.ChangeProfilePicture)
+
 	return r
 }

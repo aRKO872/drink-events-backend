@@ -15,6 +15,7 @@ const (
 
 	// REDIS TABLE KEYS 
 	USER_INFO_REDIS_KEY = "%s_user_info"
+	FILE_INFO_REDIS_KEY = "%s_file_info"
 
 	// Context literals
 	CTX_USER_ID = "USER_ID"

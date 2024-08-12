@@ -19,15 +19,13 @@ func (rao *RedisAccessOperator) GetUser(
 	var user models.Users
 
 	// Checking if exists user exists 
-	userExists, existErr := rdbClient.Exists(context.Background(), fmt.Sprintf(literals.USER_INFO_REDIS_KEY, id)).Result()
+	userExists, existErr := rdbClient.Exists(ctx, fmt.Sprintf(literals.USER_INFO_REDIS_KEY, id)).Result()
 
 	if userExists != 1 || existErr != nil {
 		return false, nil, fmt.Errorf("error checking existence of user: %s", existErr.Error())
 	}
 
 	// user exists and fetching and putting value in User
-	rao.Lock()
-	defer rao.Unlock()
 	fetchErr := rdbClient.Get(ctx, fmt.Sprintf(literals.USER_INFO_REDIS_KEY, id)).Scan(&user)
 
 	if fetchErr != nil {
@@ -61,7 +59,6 @@ func (ruo *RedisAccessOperator) SetUser(
 	setErr := rdbClient.Set(ctx, fmt.Sprintf(literals.USER_INFO_REDIS_KEY, id), user, 0).Err()
 
 	if setErr != nil {
-		fmt.Println(setErr.Error())
 		return setErr
 	}
 
