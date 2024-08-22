@@ -76,11 +76,11 @@ func (dao *DatabaseAccessOperator) GetUserFromId(
 func (dao *DatabaseAccessOperator) SetUserProfileImage(
 	userID string,
 	profilePicture string,
+	updateTime string,
 ) error {
 	dao.Lock()
 	defer dao.Unlock()
 
-	updateTime := time.Now().Format(literals.DATE_FORMAT)
 	if updateErr := dao.DB.Exec("UPDATE users SET profile_picture = ?, updated_at = ? WHERE id = ?;", profilePicture, updateTime, userID).Error; updateErr != nil {
 		return errors.New("error updating user profile img in DB")
 	}
@@ -88,13 +88,28 @@ func (dao *DatabaseAccessOperator) SetUserProfileImage(
 	return nil
 }
 
-func (dao *DatabaseAccessOperator) RemoveUserProfileImage(
+func (dao *DatabaseAccessOperator) SetUserSearchRedius(
 	userID string,
+	searchRadius int,
+	updateTime string,
 ) error {
 	dao.Lock()
 	defer dao.Unlock()
 
-	updateTime := time.Now().Format(literals.DATE_FORMAT)
+	if updateErr := dao.DB.Exec("UPDATE users SET search_radius = ?, updated_at = ? WHERE id = ?;", searchRadius, updateTime, userID).Error; updateErr != nil {
+		return errors.New("error updating user search radius in DB")
+	}
+
+	return nil
+}
+
+func (dao *DatabaseAccessOperator) RemoveUserProfileImage(
+	userID string,
+	updateTime string,
+) error {
+	dao.Lock()
+	defer dao.Unlock()
+
 	if updateErr := dao.DB.Exec("UPDATE users SET profile_picture = null, updated_at = ? WHERE id = ?;", updateTime, userID).Error; updateErr != nil {
 		return errors.New("error updating user profile img in DB")
 	}

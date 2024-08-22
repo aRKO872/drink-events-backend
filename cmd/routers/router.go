@@ -5,6 +5,8 @@ import (
 	geo_controllers "github.com/drink-events-backend/cmd/controllers/geo-controllers"
 	user_controllers "github.com/drink-events-backend/cmd/controllers/user-controllers"
 	middlewares "github.com/drink-events-backend/cmd/middleware"
+	"github.com/drink-events-backend/cmd/worker-pool"
+	"github.com/drink-events-backend/pkg/websockets"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +17,9 @@ func InitRouter() *gin.Engine {
 	r.Use(middlewares.LoadDatabase)
 	r.Use(middlewares.EnableCors)
 
-	r.Use(middlewares.AllowRoutesMiddleware(middlewares.VerifyToken(), "/geo", "/user"))
+	go worker.WorkerPool()
+
+	r.Use(middlewares.AllowRoutesMiddleware(middlewares.VerifyToken(), "/geo", "/user", "/ws"))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -35,6 +39,17 @@ func InitRouter() *gin.Engine {
 
 	// User Profile Endpoint
 	r.POST("/user/change-profile-picture", user_controllers.ChangeProfilePicture)
+	r.POST("/user/pair-request-sent-to-me", user_controllers.PairRequestsSentToMe)
+	r.POST("/user/pair-request-sent-by-me", user_controllers.PairRequestsSentByMe)
+	r.POST("/user/set-search-radius", user_controllers.SetSearchRadius)
+	r.POST("/user/delete-pair-request", user_controllers.DeletePairRequest)
+
+	m := websockets.NewWSManager()
+	//Websockets
+	r.GET("/ws", m.ServeWS)
+
+	// User Websockets Merger
+	r.POST("/user/accept-pair-request", m.AcceptPairRequest)
 
 	return r
 }

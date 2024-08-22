@@ -33,7 +33,7 @@ func GetPeopleNearby(
 		}
 	}
 
-	// Save in Redis and fetch nearby userIDs for tokenUser.uID and tokenUser.SearchRadius
+	// Save in Redis and fetch nearby userIDs for tokenUser.uID and user.SearchRadius
 	// Set Location for user in Database
 	// Create another waitgroup to concurrently fetch all User Details for nearby User IDs.
 
@@ -48,8 +48,15 @@ func GetPeopleNearby(
 	})
 
 	geoLocArrChan := make(chan []redis.GeoLocation, 1)
+
+	var userData *models.Users
 	g1.Go(func() error {
-		geoDataArr, err := redisUserOp.GetPeopleNearUserGeoLocation(ctx, *loc, tokenUser.UserId, tokenUser.SearchRadius)
+		var userFetchErr error
+		userData, userFetchErr = GetUser(ctx, tokenUser.UserId)
+		if userFetchErr != nil {
+			return userFetchErr
+		}
+		geoDataArr, err := redisUserOp.GetPeopleNearUserGeoLocation(ctx, *loc, tokenUser.UserId, userData.SearchRadius)
 
 		if err != nil {
 			return err

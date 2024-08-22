@@ -19,14 +19,14 @@ func (rao *RedisAccessOperator) GetFileRecord(
 	var file models.FileObject
 
 	// Checking if exists user exists 
-	userExists, existErr := rdbClient.Exists(ctx, fmt.Sprintf(literals.FILE_INFO_REDIS_KEY, id)).Result()
+	fileExists, existErr := rdbClient.Exists(ctx, fmt.Sprintf(literals.FILE_INFO_REDIS_KEY, id)).Result()
 
-	if userExists != 1 || existErr != nil {
+	if fileExists != 1 || existErr != nil {
 		return nil, fmt.Errorf("error checking existence of file: %s", existErr.Error())
 	}
 
 	// user exists and fetching and putting value in User
-	fetchErr := rdbClient.Get(ctx, fmt.Sprintf(literals.USER_INFO_REDIS_KEY, id)).Scan(&file)
+	fetchErr := rdbClient.Get(ctx, fmt.Sprintf(literals.FILE_INFO_REDIS_KEY, id)).Scan(&file)
 
 	if fetchErr != nil {
 		return nil, fmt.Errorf("error fetching file data: %s", fetchErr.Error())
@@ -58,6 +58,9 @@ func (rao *RedisAccessOperator) DeleteFileRecord(
 	ctx context.Context,
 	id string,
 ) (error) {
+	rao.Lock()
+	defer rao.Unlock()
+
 	if err := rao.RDB.Del(ctx, fmt.Sprintf(literals.FILE_INFO_REDIS_KEY, id)); err.Err() != nil && !errors.Is(err.Err(), redis.Nil) {
 		return errors.New("failed to delete file from redis")
 	}

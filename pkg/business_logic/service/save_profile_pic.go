@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"mime/multipart"
+	"time"
 
+	"github.com/drink-events-backend/literals"
 	"github.com/drink-events-backend/models"
 	"github.com/drink-events-backend/pkg/business_logic/client"
 	"github.com/drink-events-backend/pkg/business_logic/dao"
@@ -19,6 +21,7 @@ func saveImageAWSRedisDB(
 	imageDet *multipart.FileHeader,
 	dao *dao.DatabaseAccessOperator, 
 	redisUserOp *rao.RedisAccessOperator,
+	updateTime string,
 ) (models.FileObject, error) {
 	fileObject, err := client.SaveObjectToAWS(user.ProfilePicture, imageFile, imageDet)
 	if err != nil {
@@ -43,7 +46,7 @@ func saveImageAWSRedisDB(
 			return err
 		}
 
-		if err := dao.SetUserProfileImage(user.Id, user.ProfilePicture); err != nil {
+		if err := dao.SetUserProfileImage(user.Id, user.ProfilePicture, updateTime); err != nil {
 			return err
 		}
 
@@ -70,6 +73,7 @@ func removeProfilePictureForUser(
 	user *models.Users, 
 	dao *dao.DatabaseAccessOperator, 
 	redisUserOp *rao.RedisAccessOperator,
+	updateTime string,
 ) error {
 	wg := new(errgroup.Group)
 
@@ -78,7 +82,7 @@ func removeProfilePictureForUser(
 	})
 
 	wg.Go(func() error {
-		if err := dao.RemoveUserProfileImage(user.Id); err != nil {
+		if err := dao.RemoveUserProfileImage(user.Id, updateTime); err != nil {
 			return err
 		}
 		return dao.DeleteFileByID(user.ProfilePicture)
@@ -123,6 +127,8 @@ func SaveProfilePicture(
 		}
 	}
 
+	updateTime := time.Now().Format(literals.DATE_FORMAT)
+
 	fetchedUser, fetchUserErr := GetUser(ctx, userDet.UserId)
 	if fetchUserErr != nil {
 		return &models.SavedImageResponse{
@@ -132,7 +138,7 @@ func SaveProfilePicture(
 	}
 
 	if fetchedUser.ProfilePicture != "" {
-		if err := removeProfilePictureForUser(ctx, fetchedUser, dao, redisUserOp); err != nil {
+		if err := removeProfilePictureForUser(ctx, fetchedUser, dao, redisUserOp, updateTime); err != nil {
 			return &models.SavedImageResponse{
 				Status: false,
 				ErrorMsg: err.Error(),
@@ -144,7 +150,7 @@ func SaveProfilePicture(
 
 	fetchedUser.ProfilePicture = awsUUID
 
-	fileObject, err := saveImageAWSRedisDB(ctx, fetchedUser, imageFile, imageDet, dao, redisUserOp); 
+	fileObject, err := saveImageAWSRedisDB(ctx, fetchedUser, imageFile, imageDet, dao, redisUserOp,updateTime); 
 	if err != nil {
 		return &models.SavedImageResponse{
 			Status: false,

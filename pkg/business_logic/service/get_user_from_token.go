@@ -35,7 +35,6 @@ func FetchUserFromToken(
 		return &models.Users{
 			UserType: userClaims.UserType,
 			Id: userClaims.UserId,
-			SearchRadius: userClaims.SearchRadius,
 		}, nil
 	}
 

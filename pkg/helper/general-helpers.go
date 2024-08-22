@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/smtp"
 	"regexp"
-	"strconv"
 
 	"github.com/drink-events-backend/literals"
 	"github.com/drink-events-backend/models"
@@ -60,15 +59,9 @@ func GetUserDetailsFromReqHeader(
 		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to resolve user dtls from header")
 	}
 
-	searchRadius, convertToIntRadius := strconv.Atoi(radius)
-	if convertToIntRadius != nil {
-		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to convert search radius value")
-	}
-
 	return &models.TokenizedUserDetails{
 		UserType: userType,
 		UserId: userId,
-		SearchRadius: searchRadius,
 	}, nil
 }
 
@@ -97,4 +90,16 @@ func ValidateImageRequest(req *http.Request) (multipart.File, *multipart.FileHea
 	}
 
 	return file, fileHandler, nil
+}
+
+func Smaller(id1, id2 string) (smallId, bigId string) {
+	if id1 < id2 {
+		smallId = id1
+		bigId = id2
+	} else {
+		smallId = id2
+		bigId = id1
+	}
+
+	return
 }

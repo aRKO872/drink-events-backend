@@ -33,6 +33,19 @@ services:
     ports:
       - "6379:6379"
 
+  workerui:
+    restart: always
+    container_name: workerui
+    environment:
+      - REDIS_HOSTS=redis://redis:6379
+    depends_on:
+      - backend
+    build:
+        context: .
+        dockerfile: Dockerfile.worker
+    ports:
+      - "5040:5040"
+
   backend:
     build:
       context: .
