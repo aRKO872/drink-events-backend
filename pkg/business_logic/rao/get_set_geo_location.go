@@ -50,8 +50,6 @@ func (rao *RedisAccessOperator) GetPeopleNearUserGeoLocation(
 	rao.Lock()
 	defer rao.Unlock()
 
-	
-
 	geoLocations, fetchLocationErr := rao.RDB.GeoRadius(
 		ctx,
 		literals.USER_LOCATION_KEY,

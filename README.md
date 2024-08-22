@@ -1,7 +1,10 @@
 # drink-events-backend
 
-## For continuos file changes :
-Use command `docker compose watch`, and run on another terminal.
+## Local Setup : 
+Reach out to admin for .env file. Later :
+- Run `go mod tidy`
+- Simply run `docker compose up -d`
+- To stop all containers from running, use `docker compose down`
 
 ## To create migrations : 
 migrate create -ext sql -dir internal/migrations -seq <migration_name>

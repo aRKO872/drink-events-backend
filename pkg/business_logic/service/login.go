@@ -56,7 +56,6 @@ func LogIn(
 				ErrorMsg: fetchErr.Error(),
 			}
 		}
-		fmt.Println("helloo oo ", user)
 	} else {
 		return false, &models.SignUpLoginOutput{
 			Status:   false,
@@ -71,13 +70,19 @@ func LogIn(
 		}
 	}
 
+	if !user.IsActive {
+		return false, &models.SignUpLoginOutput{
+			Status:   false,
+			ErrorMsg: "credentials provided are for inactive user. please sign up",
+		}
+	}
+
 	// Setting User value in Redis as a goroutine
-	go redisUserOp.SetUser(ctx, user.Id, user)
+	redisUserOp.SetUser(ctx, user.Id, user)
 
 	// Get Access and Refresh token
-	// Generate Access and Refresh Tokens
-
-	fmt.Printf("%#v\n", user)
+	// Generate Access and Refresh Tokens 
+	
 	access_token, accessTokenErr := pkg_helpers.GenerateToken(
 		pkg_config.GetProjectConfig().JWT_SECRET_KEY,
 		time.Duration(pkg_config.GetProjectConfig().ACCESS_TOKEN_EXPIRY),

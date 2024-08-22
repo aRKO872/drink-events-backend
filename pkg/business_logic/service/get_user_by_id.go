@@ -31,17 +31,21 @@ func GetUser(
 		return nil, errors.New("error fetching user dtls from redis")
 	}
 
-	if fetchStatus {
-		// Available in cache
-		return user, nil
-
-	} else {
+	if !fetchStatus {
+		var err error
 		// Not available in cache
-		dbUserOperator.GetUserFromId(id)
+		user, err = dbUserOperator.GetUserFromId(id)
+		if err != nil {
+			return nil, errors.New("db error fetching User from DB using ID")
+		}
 
 		// Save in RDB before sending
 		redisUserOperator.SetUser(ctx, id, user)
-
-		return user, nil
 	}
+
+	if !user.IsActive {
+		return nil, errors.New("fetching data for inactive user")
+	}
+
+	return user, nil
 }

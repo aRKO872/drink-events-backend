@@ -1,11 +1,12 @@
 package pkg_helpers
 
 import (
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/smtp"
 	"regexp"
-	"strconv"
 
 	"github.com/drink-events-backend/literals"
 	"github.com/drink-events-backend/models"
@@ -58,14 +59,47 @@ func GetUserDetailsFromReqHeader(
 		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to resolve user dtls from header")
 	}
 
-	searchRadius, convertToIntRadius := strconv.Atoi(radius)
-	if convertToIntRadius != nil {
-		return &models.TokenizedUserDetails{}, fmt.Errorf("unable to convert search radius value")
-	}
-
 	return &models.TokenizedUserDetails{
 		UserType: userType,
 		UserId: userId,
-		SearchRadius: searchRadius,
 	}, nil
+}
+
+func ValidateImageRequest(req *http.Request) (multipart.File, *multipart.FileHeader, error) {
+	err := req.ParseMultipartForm(120 << 10) // 120 kb limit
+	if err != nil {
+		return nil, nil, errors.New("unable to parse form")
+	}
+
+	// Get the file from the form
+	file, fileHandler, err := req.FormFile("picture")
+	if err != nil {
+		return nil, nil, errors.New("error retrieving the file")
+	}
+	defer file.Close()
+
+	// Validate file size (max 100 kb)
+	if fileHandler.Size > 100 << 10 {
+		return nil, nil, errors.New("file too large. Max size is 5MB")
+	}
+
+	// Validate file type (allow only jpeg, jpg and png)
+	fileType := fileHandler.Header.Get("Content-Type")
+	if fileType != "image/jpeg" && fileType != "image/png" && fileType != "image/jpg" {
+		return nil, nil, errors.New("invalid file type. Only JPEG, JPG and PNG are allowed")
+	}
+
+	return file, fileHandler, nil
+}
+
+func Smaller(id1, id2 string) (smallId, bigId string) {
+	if id1 < id2 {
+		smallId = id1
+		bigId = id2
+	} else {
+		smallId = id2
+		bigId = id1
+	}
+
+	return
 }

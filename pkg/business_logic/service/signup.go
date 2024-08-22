@@ -6,12 +6,42 @@ import (
 	"time"
 
 	"github.com/drink-events-backend/models"
-	"github.com/drink-events-backend/pkg/business_logic/rao"
 	"github.com/drink-events-backend/pkg/business_logic/dao"
+	"github.com/drink-events-backend/pkg/business_logic/rao"
 	pkg_config "github.com/drink-events-backend/pkg/config"
 	pkg_helpers "github.com/drink-events-backend/pkg/helper"
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 )
+
+func deleteUserFromRedisAndDB(
+	ctx context.Context,
+	user *models.Users,
+	dao *dao.DatabaseAccessOperator,
+	redisUserOp *rao.RedisAccessOperator,
+) error {
+	errGp := new(errgroup.Group)
+	
+		errGp.Go(func() error {
+			if err := dao.DeleteExistingUserRecord(user); err != nil {
+				return fmt.Errorf("error deleting existing user object from DB: %s", err.Error())
+			}
+			return nil
+		})
+
+		errGp.Go(func() error {
+			if err := redisUserOp.DeleteUserRecord(ctx, user); err != nil {
+				return fmt.Errorf("error deleting existing user object from Redis: %s", err.Error())
+			}
+			return nil
+		})
+
+		if err := errGp.Wait(); err != nil {
+			return err
+		}
+
+		return nil
+}
 
 func SignUp(
 	ctx context.Context,
@@ -20,13 +50,6 @@ func SignUp(
 	status bool, 
 	output *models.SignUpLoginOutput,
 ) {
-	// Check if user exists with Email and phone number provided in DB
-	// If exists throw error to login
-	// If not exists :
-	// - Create user in DB, and get UUID of User
-	// - Use that UUID of user to save in Redis
-	// - Make a Refresh Token and Access Token enclosing userType, email, phone, user_id, name and return
-
 	dao, getDBErr := dao.GetDBAccessOperator()
 	if getDBErr != nil {
 		return false, &models.SignUpLoginOutput{
@@ -54,16 +77,25 @@ func SignUp(
 		}
 	}
 
-	if user != nil {
+	if user != nil && user.IsActive {
 		return false, &models.SignUpLoginOutput{
 			Status:   false,
 			ErrorMsg: "user already exists. please login",
 		}
 	}
 
+	if user != nil && !user.IsActive {
+		if err := deleteUserFromRedisAndDB(ctx, user, dao, redisUserOp); err != nil {
+			return false, &models.SignUpLoginOutput{
+				Status:   false,
+				ErrorMsg: err.Error(),
+			}
+		}
+	}
+
 	// Generate a new UUID for the user ID
 	u.Id = uuid.NewString()
-
+	u.IsActive = true
 	// Insert user successfully in DB
 	if userAdditionErr := dao.AddNormalUser(u); userAdditionErr != nil {
 		return false, &models.SignUpLoginOutput{

@@ -1,0 +1,9 @@
+FROM golang:1.22
+
+WORKDIR /app
+COPY go.mod go.sum ./
+
+RUN go get github.com/gocraft/work/cmd/workwebui && \
+  go install github.com/gocraft/work/cmd/workwebui
+
+CMD workwebui -redis="$REDIS_HOSTS" -ns="drink_events_namespace" -listen=":5040"

@@ -13,7 +13,6 @@ func GenerateToken(key string, expiration time.Duration, user *models.Users) (st
 	claims := &models.JWTClaims{
 		UserId:   user.Id,
 		UserType: user.UserType,
-		SearchRadius: user.SearchRadius,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiration * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
